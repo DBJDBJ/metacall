@@ -69,6 +69,7 @@
   <ItemGroup>
     <ClInclude Include="formatstringharvester.h" />
     <ClInclude Include="metacall.h" />
+    <ClInclude Include="tprintf.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="metacall.cpp" />

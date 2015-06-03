@@ -1,6 +1,7 @@
 
 #include "metacall.h"
 #include "formatstringharvester.h"
+#include "tprintf.h"
 
 
 namespace customer {
@@ -35,6 +36,8 @@ inline void bridge (const customer::pfType pf , va_list & vl )
 
 int wmain(int argc, wchar_t ** argv)
 {
+
+	dbj::prt::test::unit1();
 
 	dbj::fsh::test::format_string_harvester();
 

@@ -3,6 +3,8 @@
 #error Unicode is mandatory!
 #endif
 
+#include <typeinfo>
+
 namespace dbj {
 	namespace fsh {
 
@@ -45,10 +47,12 @@ namespace dbj {
 		template<typename T, typename ... Types>
 		std::wstring t2fsh(const T & first, Types ... rest)
 		{
-			while (eofh != t2fsh(first, rest...)) {
-				t2fsh_result += t2f(first);
+			std::wstring last = t2fsh(first, rest...);
+
+			if (eofh != last ) {
+			   return t2fsh_result += t2f(first);
 			}
-			return t2fsh_result;
+			return eofh;
 		}
 
 		namespace test {
