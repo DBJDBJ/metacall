@@ -67,6 +67,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="formatstringharvester.h" />
     <ClInclude Include="metacall.h" />
   </ItemGroup>
   <ItemGroup>

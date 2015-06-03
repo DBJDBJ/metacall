@@ -4,11 +4,17 @@
 #endif
 #define DBJ_STR(a) #a
 #define DBJ_COMMENT(s) __pragma( comment( user, DBJ_STR(s) ) )
+/* 
+https://msdn.microsoft.com/en-us/library/kb57fad8.aspx 
+*/
 
-/* https://msdn.microsoft.com/en-us/library/kb57fad8.aspx */
+#include<functional>
 #include <stdarg.h>
 #include <cstdio>
+#include <memory>
 #include <typeinfo>
+#include <string>
+#include <vector>
 /*
 2015-06-02		DBJ		Renamed CallStream to MetaCall
 
@@ -108,6 +114,115 @@ DBJ_COMMENT("DBJ -- VC2015 does not allow references as arguments to va_start()?
 			}
 */
 		};
+
+		/*
+		    meta target is kind-of-a functor
+
+			NOTE: An interface class (C++ Component Extensions) cannot contain a data member unless it is also a property.
+                  Anything other than a property or member function is not allowed in an interface. 
+				  Furthermore, constructors, destructors, and operators are not allowed.
+		*/
+
+		typedef unsigned short int argsiz_T;
+
+		class MetaTarget
+		{
+		public:
+			/*
+			to be implemented by inheritors
+			*/
+			template<typename ... Args>
+			const MetaTarget & operator () ( Args ... params) = 0;
+		};
+
+		template<typename Target /*= MetaTarget*/ >
+		class MetaCall {
+			std::unique_ptr<Target> target_ ;
+			// forbiden operations
+			//MetaCall( const MetaCall & ) {  }
+			//MetaCall & operator = (const MetaCall &) {  }
+		public:
+			MetaCall() : target_( new Target() ) {  }
+			/*
+			generic 'operator ()' for variable number of arguments
+			*/
+			template< class ... Args > 
+			const MetaCall & operator ()(Args ... params) 
+			{
+				// const argsiz_T no_of_params = sizeof...(Args);
+				try {
+					   this->target_(params ...);
+				}
+				catch (...) {
+
+				}
+				return *this;
+			}
+		};
 	} // metacall
 } // dbj
+
+namespace dbj {
+
+
+	int sum()
+	{
+		return 0;
+	}
+
+	template<typename ... Types>
+	int sum(int first, Types ... rest)
+	{
+		return first + sum(rest...);
+	}
+
+	// sum(1, 2, 3, 4, 5); 
+	// returns 15
+
+	class PrintTarget
+		/* : dbj::metacall::MetaTarget  */
+	{
+	public:
+		// template<typename ... Args> const MetaTarget & operator () () { return *this; }
+		template<typename ... Args>
+		const PrintTarget & operator () (Args ... params) const {
+
+			wchar_t * _Format;
+			va_list _ArgList;
+			__crt_va_start(_ArgList, _Format);
+			_Format = __crt_va_arg(_ArgList, wchar_t *);
+
+			this->print(_Format, _ArgList);
+
+			__crt_va_end(_ArgList);
+			return *this;
+		}
+
+	int print(const wchar_t * _Format, ... ) const {
+		int _Result;
+		va_list _ArgList;
+		__crt_va_start(_ArgList, _Format);
+		_Result = _vfwprintf_l(stdout, _Format, NULL, _ArgList);
+		__crt_va_end(_ArgList);
+		return _Result;
+	}
+
+	};
+
+	void test() {
+
+		_ASSERT( 15 == sum(1, 2, 3, 4, 5) ); 
+		// returns 15
+
+		PrintTarget pt;
+
+		pt(L"whatever",1,43,"L")(2)(3)(4);
+
+		metacall::MetaCall<PrintTarget> ms;
+
+		//ms(1);
+	}
+
+}
+
 

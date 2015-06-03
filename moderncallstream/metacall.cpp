@@ -1,6 +1,6 @@
 
 #include "metacall.h"
-#include<functional>
+#include "formatstringharvester.h"
 
 
 namespace customer {
@@ -35,7 +35,12 @@ inline void bridge (const customer::pfType pf , va_list & vl )
 
 int wmain(int argc, wchar_t ** argv)
 {
+
+	dbj::fsh::test::format_string_harvester();
+
 	using namespace dbj::metacall;
+
+	dbj::test();
 
 	// also note the variable number of arguments
 	CallStream	& cs = CallStream();
