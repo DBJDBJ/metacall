@@ -10,75 +10,80 @@ namespace dbj
 {
 
 /*
-	In case users prefer Functor OO pattern to functionl programming
-	Abstract base to all call streams using functors is not possible
-	*/
-struct Functor
+This command_base is used just to "mark" user defined functors
+wishing to participate as "commands"
+*/
+struct command_base
 {
-
 	/*
-		in modern C++ one can not have 
-		virtual template methods
-		*/
+	in modern C++ one can not have 
+	virtual template methods
+	*/
 	template <typename... Args>
 	/*virtual*/ void operator()(Args... args_) const = delete;
 };
 
 /*
-	'bridge' between call stream and anything
-	 inheriting from dbj::Functor
-	*/
-template <typename... Args>
-inline void bridge(
-	Functor const &ftor_, Args... args_)
-{
-	ftor_(args_...);
-	//std::cout << "\nBridge for Functor type:" << typeid(t_).name();
-}
-
-/*
-	'bridge' to anything
-	it dispatches the calls received to the concrete functions as found by compiler.
-	if there is no required bridge function specialization found there is always a generic one.
-	this is the root of the whole family of bridge functions
-	*/
+here we execute the "commands"
+if arguments are not in the format (command_base,arg1,arg2,...)
+coresponding sink will be called before this processor is called
+*/
 template <typename T, typename... Args>
-inline void bridge(T const &t_, Args... args_)
+inline void processor(T const & cmd_, Args... args_)
 {
-	if constexpr (std::is_same_v<Functor, T>)
+	// functor inheriting from dbj::command_base
+	// will be treated differently
+	// NOTE: I could use my own is_callbale type trait here
+	// but that will render a surface for abuse attacks
+	using namespace std;
+	using ARGTYPE = decay_t<T>;
+	using FTRTYPE = decay_t<command_base>;
+	constexpr bool  is_functor = is_base_of_v< FTRTYPE, ARGTYPE >;
+	constexpr bool  invocable = is_invocable_v<ARGTYPE,Args...>;
+
+#define DBJ_TRACE_BRIDGE
+
+#ifdef DBJ_TRACE_BRIDGE
+	cout << boolalpha
+	    << "\n------------------------------------------------------------"
+	    << "\nGeneric Bridge: \t"
+		<< "\tArgument type: " << typeid(ARGTYPE).name()
+		// << "\tFunctor base type: " << typeid(FTRTYPE).name()
+		<< "\tArgument is functor offsping: " << is_functor
+		<< "\tArgument is invocable: " << invocable << endl ;
+#endif
+
+	if constexpr (is_functor) 
 	{
-		bridge((Functor &)t_, args_...);
+		// functor must have call operator with variable
+		// number of arguments
+		cmd_( args_...);
 	}
-	else
-	{
-		std::cout << "\nBridge for non Functor type:" << typeid(t_).name();
+	else {
+		// anything else, needs to have it's
+		// processor implemented
+		cout << "\nType: " << typeid(cmd_).name() << ", has no processor implemented";
 	}
 }
 
-// If compiler does not find
-// a specialized bridge it needs
-// it will call the generic bridges above.
+//template <typename T, typename... Args>
+//using bridge_type = 
+//void (*)(T const& sink_, Args... args_);
 
-/*
-	CallStream is a single non-generic type. It one overloaded generic function call operator
-	It depends on the existence of the family of 'bridge' functions.
-	From inside 'operator ()' found, an appropriate bridge is found and used
-	to the concrete implementation of the concrete type of the first argument
-	if there is no required bridge function specialization found there is always a generic one.
-	Result is comprehensive decoupling between callers and implementations hidden behind a call stream
-	and a bridge.
-	*/
-class CallStream
+
+class call_streamer final
 {
+
 public:
 	/*
-		generic 'operator ()' for references and variable
-		number of arguments following
-		*/
-	template <typename T, typename... Args>
-	const CallStream &operator()(T const &f, Args... args_) const
+	this operator deliver the "calling experience"
+	to the clients
+	each call is a 'command' and variable number of arguments
+	*/
+	template < typename CMD_, typename... Args>
+	const call_streamer& operator()(CMD_ cmd_, Args... args_) const
 	{
-		dbj::bridge(f, args_...);
+		dbj::processor( cmd_, args_...);
 		return *this;
 	}
 };
@@ -87,9 +92,18 @@ public:
 
 namespace user
 {
+/*
+user defined functor example
+also a generic functor example
 
+requirements:
+- it has to inherit from the dbj::command_base
+- it has to have call operator of this signature
+	template <typename... Args>
+	void operator()(const T & , Args... ) const
+*/
 template <typename T>
-class tagged_functor : public dbj::Functor
+class tagged_functor : public dbj::command_base
 {
 public:
 	typedef T value_type;
@@ -97,10 +111,10 @@ public:
 	typedef tagged_functor *ptr_type;
 
 protected:
-	std::string tag_{};
-	T value_{};
+	mutable std::string tag_{};
+	mutable T value_{};
 
-	type &This() const { return *const_cast<ptr_type>(this); }
+	// type &This() const { return *const_cast<ptr_type>(this); }
 
 public:
 	tagged_functor(const char *tag_arg)
@@ -108,64 +122,47 @@ public:
 	{
 	}
 
-	/*This functor requires exactly one argument of type T*/
+	/* mandatory method */
 	template <typename... Args>
-	void operator()(Args... args_) const
+	void operator()(const T & first_arg_ , Args... /*args_*/) const
 	{
 		// take the first argument, if any
-		if (sizeof...(args_) > 0)
-			This().value_ = args_;
+		this->value_ = first_arg_;
 		this->show();
 	}
+
+	/* non mandatory method */
 	void show(std::ostream &out_ = std::cout) const
 	{
-		out_ << "\nTagged functor of type: " << typeid(*this).name()
-			 << "\ntagged as: " << this->tag_.c_str()
-			 << "\nis holding the type " << typeid(T).name()
-			 << "\nand the value is: " << value_;
+		out_ << "\n\nTagged functor of type: " << typeid(*this).name()
+			 << ", tagged as: " << this->tag_.c_str()
+			 << ",is holding the type " << typeid(T).name()
+			 << ", and the value is: " << value_;
 	}
 };
 } // namespace user
-namespace dbj
-{
 
-using int_tagged_ftor = user::tagged_functor<int>;
-/*
-		The CallStream bridge specialization that
-		will reach to any kind-of-a Functor above
-		*/
-template <typename T>
-inline void bridge(
-	const user::tagged_functor<T> &gf, va_list vl)
-{
-	gf(vl);
-}
-} // namespace dbj
-//
 inline void test_modern_call_stream()
 {
 	//
 	// also note the variable number of arguments
 	//
-	dbj::CallStream &&cs = dbj::CallStream{};
+	dbj::call_streamer	cs ;
 
+	// goes to overloaded processor for handling string literals
 	cs("add", 1, 2)
-		// goes to overloaded bridge for handling string literal
-		('X', 1, 2, 3)
-		// to specialized bridge for handling char
-		(7, 6, 8, 9)
-		// to specialized bridge for handling int
-		(true, 11)
-		// to specialized bridge for handling bool
-		(&std::cout, "this", "goes", "to", "generic", "bridge");
-	// and we know where the above will go
+	// to specialized processor for handling char
+	('X', 1, 2, 3)
+	// to specialized processor for handling int
+	(7, 6, 8, 9)
+	// to specialized processor for handling bool
+	(true, 11)
+	// and we can guess by now where the above will go
+	(&std::cout, "this", "goes", "to", "generic", "processor");
 
 	/* make a functor to deal with single int's */
 	user::tagged_functor<int> my_ftor("LABEL");
 
 	/*Again the same single CallStream is used */
-	cs(my_ftor, 9)
-		// "LABEL" and 9 are available to the implementation
-		(my_ftor, 6);
-	// "LABEL" and 6
-}
+	cs(my_ftor, 9)(my_ftor, 6);
+ }
