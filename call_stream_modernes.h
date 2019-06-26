@@ -46,14 +46,14 @@ inline void processor(T const & cmd_, Args... args_)
 #ifdef DBJ_TRACE_BRIDGE
 	cout << boolalpha
 	    << "\n------------------------------------------------------------"
-	    << "\nGeneric Bridge: \t"
-		<< "\tArgument type: " << typeid(ARGTYPE).name()
+	    << "\nGeneric Bridge "
+		<< ", argument type: " << typeid(ARGTYPE).name()
 		// << "\tFunctor base type: " << typeid(FTRTYPE).name()
-		<< "\tArgument is functor offsping: " << is_functor
-		<< "\tArgument is invocable: " << invocable << endl ;
+		<< ", argument is functor offsping: " << is_functor
+		<< ", argument is invocable: " << invocable << endl ;
 #endif
 
-	if constexpr (is_functor) 
+	if constexpr (invocable)
 	{
 		// functor must have call operator with variable
 		// number of arguments
@@ -69,7 +69,6 @@ inline void processor(T const & cmd_, Args... args_)
 //template <typename T, typename... Args>
 //using bridge_type = 
 //void (*)(T const& sink_, Args... args_);
-
 
 class call_streamer final
 {
@@ -140,7 +139,36 @@ public:
 			 << ", and the value is: " << value_;
 	}
 };
+
+// example how to make existing function callable from "call stream"
+// add existed long time before call stream
+void add(int a1, int a2, int a3) 
+{
+	std::cout << "\n" << __FUNCSIG__ << "\nreceived: " << a1
+		<< "," << a2 << "," << a3;
+}
+
 } // namespace user
+
+#include <tuple>
+
+/*
+Examples how to overload processors
+for particular type
+*/
+namespace dbj {
+	template <typename ... Args>
+	inline void processor (const char* sl_cmd_, Args ... args_)
+	{
+		auto args_tup = std::make_tuple(args_...);
+		
+		auto a1 = std::get<0>(args_tup);
+		auto a2 = std::get<1>(args_tup);
+
+		std::cout << "\n" << __FUNCSIG__ << "received: '" << sl_cmd_
+			<< "'," << a1 << "," << a2;
+	}
+}
 
 inline void test_modern_call_stream()
 {
@@ -151,6 +179,7 @@ inline void test_modern_call_stream()
 
 	// goes to overloaded processor for handling string literals
 	cs("add", 1, 2)
+		(user::add,4,5,6)
 	// to specialized processor for handling char
 	('X', 1, 2, 3)
 	// to specialized processor for handling int
