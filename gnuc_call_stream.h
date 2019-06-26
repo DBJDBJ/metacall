@@ -6,7 +6,8 @@
 
 #define UNSD(x) (void)sizeof(x)
 
-namespace gnuc {
+namespace gnuc
+{
 /////////////////////////////////////////////////////////////
 void add(int L, int R)
 {
@@ -21,29 +22,30 @@ void bridge(FP fun, va_list args_)
 }
 /////////////////////////////////////////////////////////////
 
-template<typename T>
-struct my_functor {
-	void operator ()(va_list args_) const 
+template <typename T>
+struct my_functor
+{
+	void operator()(va_list args_) const
 	{
 		T actual_arg_ = va_arg(args_, T);
 		std::cout << "\n called my_functor( " << actual_arg_ << " ) ";
 	}
 };
 
-template<typename T>
-void bridge( my_functor<T> ftor_, va_list args_)
+template <typename T>
+void bridge(my_functor<T> ftor_, va_list args_)
 {
 	ftor_(args_);
 }
 
-
 /////////////////////////////////////////////////////////////
 
-class CallStream {
+class CallStream
+{
 public:
 	/*	generic 'operator ()' 	*/
-	template<typename T>
-	const CallStream & operator () ( T fun, ...) const
+	template <typename T>
+	const CallStream &operator()(T fun, ...) const
 	{
 		va_list vl;
 		va_start(vl, fun);
@@ -52,9 +54,7 @@ public:
 		va_end(vl);
 		return *this;
 	}
-
 };
-
 
 void test ()
 {
@@ -66,4 +66,4 @@ void test ()
 	std::cout << std::endl;
 }
 
-} // gnuc
+} // namespace gnuc

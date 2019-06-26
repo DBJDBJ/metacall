@@ -15,16 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="call_stream_cpp.cpp">
+    <ClInclude Include="gnuc_call_stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="call_stream_modernes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="call_stream_legacy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gnuc_call_stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="ofcourse.cs" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,1 @@
+cl /EHsc /std:c++17 /D:_DEBUG /D:DEBUG main.cpp

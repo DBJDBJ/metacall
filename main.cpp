@@ -3,13 +3,12 @@
 
 #include <iostream>
 // #define _CRT_NO_VA_START_VALIDATION
-// #include "call_stream_legacy.h"
+#include "call_stream_modernes.h"
 #include "gnuc_call_stream.h"
 
 int main()
 {
-	// test_legacy_call_stream();
+	test_modern_call_stream();
 
-	gnuc::test();
+	// gnuc::test();
 }
-

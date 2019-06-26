@@ -152,7 +152,7 @@ namespace user {
 //		}
 //}
 //
-inline void test_legacy_call_stream()
+inline void test_modern_call_stream()
 {
 	//
 	// also note the variable number of arguments
