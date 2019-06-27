@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="gnuc_call_stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="call_stream_modernes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -38,8 +35,5 @@
     <ClCompile Include="console_util\scrutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ofcourse.cs" />
   </ItemGroup>
 </Project>
