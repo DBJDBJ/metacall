@@ -21,6 +21,9 @@
     <ClInclude Include="call_stream_modernes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dbj_call_stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

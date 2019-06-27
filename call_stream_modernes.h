@@ -1,99 +1,52 @@
 #pragma once
-#include <iostream>
+
 #include <string>
-#include <type_traits>
-#include <stdarg.h>
+#include "dbj_call_stream.h"
 
 // https://wandbox.org/permlink/6K3wg44UXnnbV0A7
 
-namespace dbj
-{
-
-/*
-This command_base is used just to "mark" user defined functors
-wishing to participate as "commands"
-*/
-struct command_base
-{
-	/*
-	in modern C++ one can not have 
-	virtual template methods
-	*/
-	template <typename... Args>
-	/*virtual*/ void operator()(Args... args_) const = delete;
-};
-
-/*
-here we execute the "commands"
-if arguments are not in the format (command_base,arg1,arg2,...)
-coresponding sink will be called before this processor is called
-*/
-template <typename T, typename... Args>
-inline void processor(T const & cmd_, Args... args_)
-{
-	// functor inheriting from dbj::command_base
-	// will be treated differently
-	// NOTE: I could use my own is_callbale type trait here
-	// but that will render a surface for abuse attacks
-	using namespace std;
-	using ARGTYPE = decay_t<T>;
-	using FTRTYPE = decay_t<command_base>;
-	constexpr bool  is_functor = is_base_of_v< FTRTYPE, ARGTYPE >;
-	constexpr bool  invocable = is_invocable_v<ARGTYPE,Args...>;
-
-#define DBJ_TRACE_BRIDGE
-
-#ifdef DBJ_TRACE_BRIDGE
-	cout << boolalpha
-	    << "\n------------------------------------------------------------"
-	    << "\nGeneric Bridge "
-		<< ", argument type: " << typeid(ARGTYPE).name()
-		// << "\tFunctor base type: " << typeid(FTRTYPE).name()
-		<< ", argument is functor offsping: " << is_functor
-		<< ", argument is invocable: " << invocable << endl ;
-#endif
-
-	if constexpr (invocable)
-	{
-		// functor must have call operator with variable
-		// number of arguments
-		cmd_( args_...);
-	}
-	else {
-		// anything else, needs to have it's
-		// processor implemented
-		cout << "\nType: " << typeid(cmd_).name() << ", has no processor implemented";
-	}
-}
-
-//template <typename T, typename... Args>
-//using bridge_type = 
-//void (*)(T const& sink_, Args... args_);
-
-class call_streamer final
-{
-
-public:
-	/*
-	this operator deliver the "calling experience"
-	to the clients
-	each call is a 'command' and variable number of arguments
-	*/
-	template < typename CMD_, typename... Args>
-	const call_streamer& operator()(CMD_ cmd_, Args... args_) const
-	{
-		dbj::processor( cmd_, args_...);
-		return *this;
-	}
-};
-
-} // namespace dbj
-
 namespace user
 {
+	namespace cs = dbj::call_stream;
+
+	/* 
+	user defined processor 
+	user does not need to inherit from the default processor
+	but it can ... in this case to take care of 
+	string literals and bools sent as the first arg
+
+	dbj::call_stream::call_streamer< ser::processor > ucs;
+
+	ucs(true,1,2,3)("oopsy!",4,5,6) ;
+
+	*/
+	struct processor : cs::default_processor {
+
+		/*
+		specificaly use the operators from the base
+		*/
+		using cs::default_processor::operator();
+		/*
+		in user define processor we take care of bool literals too
+		*/
+		template <typename ... Args>
+		void operator () (bool bool_arg_, Args ... args_) const 
+		{
+			auto args_tup = std::make_tuple(args_...);
+
+			auto arg_count_ = std::tuple_size_v< decltype(args_tup) >;
+
+#ifdef DBJ_TRACE_BRIDGE
+			std::cout << std::boolalpha << "\n" << __FUNCSIG__ << "received: '"
+				<< bool_arg_
+				<< ", and" << arg_count_ << " arguments";
+#endif
+		}
+
+	};
 /*
-user defined functor example
-also a generic functor example
+user defined comand
+also a generic comand example
 
 requirements:
 - it has to inherit from the dbj::command_base
@@ -102,21 +55,16 @@ requirements:
 	void operator()(const T & , Args... ) const
 */
 template <typename T>
-class tagged_functor : public dbj::command_base
+class generic_command : public cs::command_base
 {
-public:
-	typedef T value_type;
-	typedef tagged_functor type;
-	typedef tagged_functor *ptr_type;
-
-protected:
 	mutable std::string tag_{};
 	mutable T value_{};
 
-	// type &This() const { return *const_cast<ptr_type>(this); }
-
 public:
-	tagged_functor(const char *tag_arg)
+
+	typedef T value_type;
+	typedef generic_command type;
+	generic_command(const char *tag_arg)
 		: tag_(tag_arg == nullptr ? "UNKNOWN" : tag_arg)
 	{
 	}
@@ -125,7 +73,7 @@ public:
 	template <typename... Args>
 	void operator()(const T & first_arg_ , Args... /*args_*/) const
 	{
-		// take the first argument, if any
+		// save the first argument
 		this->value_ = first_arg_;
 		this->show();
 	}
@@ -140,8 +88,7 @@ public:
 	}
 };
 
-// example how to make existing function callable from "call stream"
-// add existed long time before call stream
+// pre-existing function is immediately callable from a "call stream"
 void add(int a1, int a2, int a3) 
 {
 	std::cout << "\n" << __FUNCSIG__ << "\nreceived: " << a1
@@ -150,48 +97,30 @@ void add(int a1, int a2, int a3)
 
 } // namespace user
 
-#include <tuple>
-
-/*
-Examples how to overload processors
-for particular type
-*/
-namespace dbj {
-	template <typename ... Args>
-	inline void processor (const char* sl_cmd_, Args ... args_)
-	{
-		auto args_tup = std::make_tuple(args_...);
-		
-		auto a1 = std::get<0>(args_tup);
-		auto a2 = std::get<1>(args_tup);
-
-		std::cout << "\n" << __FUNCSIG__ << "received: '" << sl_cmd_
-			<< "'," << a1 << "," << a2;
-	}
-}
-
 inline void test_modern_call_stream()
 {
-	//
-	// also note the variable number of arguments
-	//
-	dbj::call_streamer	cs ;
+	namespace cs = dbj::call_stream;
+
+	// cs::default_cs	cst ;
+
+	cs::call_streamer< user::processor > cst;
 
 	// goes to overloaded processor for handling string literals
-	cs("add", 1, 2)
+	cst("add", 1, 2)
+		// pre-existing function is immediately callable from a "call stream"
 		(user::add,4,5,6)
-	// to specialized processor for handling char
+	// if found this is dispatched to specialized processor for handling char
 	('X', 1, 2, 3)
-	// to specialized processor for handling int
+	// if found this is dispatched to specialized processor for handling int list
 	(7, 6, 8, 9)
-	// to specialized processor for handling bool
+	// if found this is dispatched to specialized processor for handling bool
 	(true, 11)
-	// and we can guess by now where the above will go
+	// and we can guess by now where this will go
 	(&std::cout, "this", "goes", "to", "generic", "processor");
 
 	/* make a functor to deal with single int's */
-	user::tagged_functor<int> my_ftor("LABEL");
+	user::generic_command<int> my_ftor("LABEL");
 
 	/*Again the same single CallStream is used */
-	cs(my_ftor, 9)(my_ftor, 6);
+	cst(my_ftor, 9)(my_ftor, 6);
  }

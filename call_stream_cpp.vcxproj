@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="call_stream_modernes.h" />
+    <ClInclude Include="dbj_call_stream.h" />
     <ClInclude Include="gnuc_call_stream.h" />
   </ItemGroup>
   <ItemGroup>
