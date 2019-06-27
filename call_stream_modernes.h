@@ -15,7 +15,7 @@ namespace user
 	but it can ... in this case to take care of 
 	string literals and bools sent as the first arg
 
-	dbj::call_stream::call_streamer< ser::processor > ucs;
+	dbj::call_stream::call_streamer< user::processor > ucs;
 
 	ucs(true,1,2,3)("oopsy!",4,5,6) ;
 
@@ -33,13 +33,9 @@ namespace user
 		void operator () (bool bool_arg_, Args ... args_) const 
 		{
 			auto args_tup = std::make_tuple(args_...);
-
 			auto arg_count_ = std::tuple_size_v< decltype(args_tup) >;
-
 #ifdef DBJ_TRACE_BRIDGE
-			std::cout << std::boolalpha << "\n" << __FUNCSIG__ << "received: '"
-				<< bool_arg_
-				<< ", and" << arg_count_ << " arguments";
+	dbj::print::green("\n " __FUNCSIG__ " received: %d and %d arguments", bool_arg_, arg_count_);
 #endif
 		}
 
@@ -81,18 +77,21 @@ public:
 	/* non mandatory method */
 	void show(std::ostream &out_ = std::cout) const
 	{
-		out_ << "\n\nTagged functor of type: " << typeid(*this).name()
-			 << ", tagged as: " << this->tag_.c_str()
-			 << ",is holding the type " << typeid(T).name()
-			 << ", and the value is: " << value_;
+#ifdef DBJ_TRACE_BRIDGE
+		dbj::print::green(
+			"Generic CMD type %s, tag: %s, holding: %s",
+			typeid(*this).name(), this->tag_.c_str(), typeid(T).name()
+		);
+#endif
 	}
 };
 
 // pre-existing function is immediately callable from a "call stream"
 void add(int a1, int a2, int a3) 
 {
-	std::cout << "\n" << __FUNCSIG__ << "\nreceived: " << a1
-		<< "," << a2 << "," << a3;
+#ifdef DBJ_TRACE_BRIDGE
+	dbj::print::blue("\n " __FUNCSIG__ " received: %d,%d,%d", a1, a2,a3);
+#endif
 }
 
 } // namespace user
@@ -102,13 +101,14 @@ inline void test_modern_call_stream()
 	namespace cs = dbj::call_stream;
 
 	// cs::default_cs	cst ;
-
+	// since user::processor inherits the default processor
+	// this just expands on its behaviour
 	cs::call_streamer< user::processor > cst;
 
 	// goes to overloaded processor for handling string literals
 	cst("add", 1, 2)
-		// pre-existing function is immediately callable from a "call stream"
-		(user::add,4,5,6)
+	// pre-existing function is immediately callable from a "call stream"
+	(user::add,4,5,6)
 	// if found this is dispatched to specialized processor for handling char
 	('X', 1, 2, 3)
 	// if found this is dispatched to specialized processor for handling int list
@@ -123,4 +123,4 @@ inline void test_modern_call_stream()
 
 	/*Again the same single CallStream is used */
 	cst(my_ftor, 9)(my_ftor, 6);
- }
+}

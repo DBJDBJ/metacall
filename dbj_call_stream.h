@@ -7,6 +7,11 @@
 
 #define DBJ_TRACE_BRIDGE
 
+#ifdef DBJ_TRACE_BRIDGE
+#include "console_util/dbj_color.h"
+#define DBJ_BOOLALPHA(x) (x ? "true" : "false")
+#endif
+
 /*
 
 the default processor is where all call streamer calls are processed and dispatched
@@ -77,13 +82,25 @@ namespace dbj {
 				constexpr bool  invocable = is_invocable_v<ARGTYPE, Args...>;
 
 #ifdef DBJ_TRACE_BRIDGE
-				cout << boolalpha
-					<< "\n------------------------------------------------------------"
-					<< "\nGeneric Bridge "
-					<< ", argument type: " << typeid(ARGTYPE).name()
-					// << "\tFunctor base type: " << typeid(FTRTYPE).name()
-					<< ", argument is functor offsping: " << is_functor
-					<< ", argument is invocable: " << invocable << endl;
+				//cout << boolalpha
+				//	<< "\n------------------------------------------------------------"
+				//	<< "\nGeneric Bridge "
+				//	<< ", argument type: " << typeid(ARGTYPE).name()
+				//	// << "\tFunctor base type: " << typeid(FTRTYPE).name()
+				//	<< ", argument is functor offsping: " << is_functor
+				//	<< ", argument is invocable: " << invocable << endl;
+
+	dbj::print::white(
+	"\n------------------------------------------------------------"
+	);
+	dbj::print::red(
+	"\nGeneric Bridge "
+	", argument type: %s"
+	", argument is functor offsping: %s"
+	", argument is invocable: %s\n",
+	typeid(ARGTYPE).name(), DBJ_BOOLALPHA(is_functor), DBJ_BOOLALPHA(invocable)
+);
+
 #endif
 
 				if constexpr (invocable)
@@ -97,7 +114,7 @@ namespace dbj {
 					// anything else, needs to have it's
 					// processor implemented
 					// see the example bellow for string literals
-					cout << "\nType: " << typeid(cmd_).name() << ", has no processor implemented";
+					dbj::print::white("\nType: %s, has no processor implemented", typeid(cmd_).name());
 				}
 			}
 
@@ -113,9 +130,9 @@ namespace dbj {
 				auto a2 = std::get<1>(args_tup);
 
 #ifdef DBJ_TRACE_BRIDGE
-				std::cout << "\n" << __FUNCSIG__ << "received: '" << sl_cmd_
-					<< "'," << a1 << "," << a2;
+		dbj::print::green("\n %s received: %d, %d", typeid(*this).name(), a1,a2);
 #endif
+
 			}
 
 		}; // default_processor

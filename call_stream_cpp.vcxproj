@@ -151,10 +151,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="console_util\scrutil.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="call_stream_modernes.h" />
+    <ClInclude Include="console_util\dbj_color.h" />
+    <ClInclude Include="console_util\scrutil.h" />
     <ClInclude Include="dbj_call_stream.h" />
     <ClInclude Include="gnuc_call_stream.h" />
   </ItemGroup>

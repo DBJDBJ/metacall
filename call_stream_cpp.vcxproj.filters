@@ -24,9 +24,18 @@
     <ClInclude Include="dbj_call_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="console_util\dbj_color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="console_util\scrutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="console_util\scrutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
