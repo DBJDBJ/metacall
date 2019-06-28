@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="diagrams">
+      <UniqueIdentifier>{20df6685-d17c-4acc-a820-8c4edd659b44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="call_stream_modernes.h">
@@ -35,5 +38,10 @@
     <ClCompile Include="console_util\scrutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="diagrams\readme.md">
+      <Filter>diagrams</Filter>
+    </None>
   </ItemGroup>
 </Project>

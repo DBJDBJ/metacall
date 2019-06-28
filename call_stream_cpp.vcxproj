@@ -162,6 +162,9 @@
     <ClInclude Include="console_util\scrutil.h" />
     <ClInclude Include="dbj_call_stream.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="diagrams\readme.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
