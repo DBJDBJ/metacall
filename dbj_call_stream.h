@@ -83,17 +83,7 @@ struct default_processor
 				constexpr bool  invocable = is_invocable_v<ARGTYPE, Args...>;
 
 #ifdef DBJ_TRACE_BRIDGE
-				//cout << boolalpha
-				//	<< "\n------------------------------------------------------------"
-				//	<< "\nGeneric Bridge "
-				//	<< ", argument type: " << typeid(ARGTYPE).name()
-				//	// << "\tFunctor base type: " << typeid(FTRTYPE).name()
-				//	<< ", argument is functor offsping: " << is_functor
-				//	<< ", argument is invocable: " << invocable << endl;
-
-	dbj::print::white(
-	"\n------------------------------------------------------------"
-	);
+	dbj::print::white("\n------------------------------------------------------------");
 	dbj::print::red(
 	"\nGeneric Bridge "
 	", argument type: %s"
@@ -101,9 +91,7 @@ struct default_processor
 	", argument is invocable: %s\n",
 	typeid(ARGTYPE).name(), DBJ_BOOLALPHA(is_functor), DBJ_BOOLALPHA(invocable)
 );
-
 #endif
-
 				if constexpr (invocable)
 				{
 					// commnad must be a functor with call operator with variable
@@ -143,9 +131,12 @@ this functor delivers the "calling experience"
 to the clients
 */
 template<typename PROC>
-struct call_streamer final
+class call_streamer final
 {
 	PROC proc_;
+
+public:
+
 	template < typename CMD_, typename... Args>
 	const call_streamer& operator()(CMD_ cmd_, Args... args_) const
 	{
