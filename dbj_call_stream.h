@@ -5,11 +5,12 @@
 #include <stdarg.h>
 #include <tuple>
 
+// comment this out to stop extensive console printing
 #define DBJ_TRACE_BRIDGE
 
 #ifdef DBJ_TRACE_BRIDGE
+// simple console colouring and using it
 #include "console_util/dbj_color.h"
-#define DBJ_BOOLALPHA(x) (x ? "true" : "false")
 #endif
 
 /*
@@ -59,20 +60,20 @@ namespace dbj {
 			/*virtual*/ void operator()(Args... args_) const = delete;
 		};
 
-		/*
-		Default processor
-		each call can be a 'command' + variable number of arguments
-		or not 
-		*/
-		struct default_processor  
-		{
-			/*
-			user defined processors must be functors implementing
-			this method
-			*/
-			template <typename T, typename... Args>
-			void operator () (T const& cmd_, Args... args_) const
-			{
+/*
+Default processor
+each call can be a 'command' + variable number of arguments
+or not 
+*/
+struct default_processor  
+{
+	/*
+	user defined processors must be functors implementing
+	this method
+	*/
+	template <typename T, typename... Args>
+	void operator () (T const& cmd_, Args... args_) const
+	{
 				// functor inheriting from dbj::command_base
 				// will be treated differently
 				using namespace std;
@@ -137,21 +138,21 @@ namespace dbj {
 
 		}; // default_processor
 
-		/*
-		this functor delivers the "calling experience"
-		to the clients
-		*/
-		template<typename PROC>
-		struct call_streamer final
-		{
-			PROC proc_;
-			template < typename CMD_, typename... Args>
-			const call_streamer& operator()(CMD_ cmd_, Args... args_) const
-			{
-				proc_(cmd_, args_...);
-				return *this;
-			}
-		};
+/*
+this functor delivers the "calling experience"
+to the clients
+*/
+template<typename PROC>
+struct call_streamer final
+{
+	PROC proc_;
+	template < typename CMD_, typename... Args>
+	const call_streamer& operator()(CMD_ cmd_, Args... args_) const
+	{
+		proc_(cmd_, args_...);
+		return *this;
+	}
+};
 
 		using default_cs = call_streamer< default_processor >;
 

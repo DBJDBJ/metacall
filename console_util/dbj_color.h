@@ -2,6 +2,10 @@
 
 #include <stdio.h>
 
+// helper for printf boolean display
+#define DBJ_BOOLALPHA(x) (x ? "true" : "false")
+
+
 namespace dbj {
 	namespace con
 	{
