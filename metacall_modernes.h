@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "dbj_call_stream.h"
+#include "dbj_metacall.h"
 
 // user defined extensions to the default call stream
 // name of this file is cynical omage to the site
@@ -8,25 +8,26 @@
 
 namespace user
 {
-	namespace cs = dbj::call_stream;
+	namespace mc = dbj::metacall ;
 
 	/* 
-	user defined processor 
+	user defined processor (UDP)
 	user does not need to inherit from the default processor
-	but it can ... in this case to take care of 
+	but it can, usually for cnvenience 
+	This UPD, takes care of 
 	string literals and bools sent as the first arg
 
-	dbj::call_stream::call_streamer< user::processor > ucs;
+	dbj::metacall::call_streamer< user::processor > ucs;
 
 	ucs(true,1,2,3)("oopsy!",4,5,6) ;
 
 	*/
-	struct processor : cs::default_processor {
+	struct processor : mc::default_processor {
 
 		/*
 		specificaly use the operators from the base
 		*/
-		using cs::default_processor::operator();
+		using mc::default_processor::operator();
 		/*
 		in user define processor we take care of bool literals too
 		*/
@@ -46,13 +47,12 @@ user defined comand
 also a generic comand example
 
 requirements:
-- it has to inherit from the dbj::command_base
 - it has to have call operator of this signature
 	template <typename... Args>
 	void operator()(const T & , Args... ) const
 */
 template <typename T>
-class generic_command : public cs::command_base
+class generic_command 
 {
 	mutable std::string tag_{};
 	mutable T value_{};
@@ -87,7 +87,11 @@ public:
 	}
 };
 
-// pre-existing function is immediately callable from a "call stream"
+// any pre-existing function is immediately 
+// callable from a "meta call"
+//
+// mc(add, 1,2,3) ;
+//
 void add(int a1, int a2, int a3) 
 {
 #ifdef DBJ_TRACE_BRIDGE

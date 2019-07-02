@@ -17,8 +17,6 @@ https://msdn.microsoft.com/en-us/library/kb57fad8.aspx
 #include <vector>
 /*
 2015-06-02		DBJ		Renamed CallStream to MetaCall
-
-http://www.dbj.org/2014/12/18/callstream-part-3-c-binding/
 */
 
 /* Call Stream bridges are spearated so they can be moved to a spearate header easier */

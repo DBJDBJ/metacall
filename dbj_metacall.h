@@ -49,22 +49,8 @@ point where wan can lo the traffic, or redirect the traffic, etc ...
 */
 
 namespace dbj {
-	namespace call_stream
+	namespace metacall
 	{
-
-		/*
-		This command_base is used just to "mark" user defined functors
-		wishing to participate as "commands"
-		*/
-		struct command_base
-		{
-			/*
-			in modern C++ one can not have virtual template methods
-			*/
-			template <typename... Args>
-			/*virtual*/ void operator()(Args... args_) const = delete;
-		};
-
 /*
 Default processor
 each call can be a 'command' + variable number of arguments
@@ -79,43 +65,40 @@ struct default_processor
 	template <typename T, typename... Args>
 	void operator () (T const& cmd_, Args... args_) const
 	{
-				// functor inheriting from dbj::command_base
-				// will be treated differently
-				using namespace std;
-				using ARGTYPE = decay_t<T>;
-				using FTRTYPE = decay_t<command_base>;
-				constexpr bool  is_functor = is_base_of_v< FTRTYPE, ARGTYPE >;
-				constexpr bool  invocable = is_invocable_v<ARGTYPE, Args...>;
+	// functor inheriting from dbj::command_base
+	// will be treated differently
+	using namespace std;
+	using ARGTYPE = decay_t<T>;
+	constexpr bool  invocable = is_invocable_v<ARGTYPE, Args...>;
 
 #ifdef DBJ_TRACE_BRIDGE
 	dbj::print::white("\n------------------------------------------------------------");
 	dbj::print::red(
 	"\nGeneric Bridge "
 	", argument type: %s"
-	", argument is functor offsping: %s"
 	", argument is invocable: %s\n",
-	typeid(ARGTYPE).name(), DBJ_BOOLALPHA(is_functor), DBJ_BOOLALPHA(invocable)
+	typeid(ARGTYPE).name(), DBJ_BOOLALPHA(invocable)
 );
 #endif
-				if constexpr (invocable)
-				{
-					// commnad must be a functor with call operator with variable
-					// number of arguments
-					// of some tother invocable object
-					cmd_(args_...);
-				}
-				else {
-					// anything else, needs to have it's
-					// processor implemented
-					// see the example bellow for string literals
-					dbj::print::white("\nType: %s, has no processor implemented", typeid(cmd_).name());
-				}
-			}
+		if constexpr (invocable)
+		{
+			// commnad must be a functor with call operator with variable
+			// number of arguments
+			// of some tother invocable object
+			cmd_(args_...);
+		}
+		else {
+			// anything else, needs to have it's
+			// processor implemented
+			// see the example bellow for string literals
+			dbj::print::white("\nType: %s, has no processor implemented", typeid(cmd_).name());
+		}
+	}
 
-		}; // default_processor
+}; // default_processor
 
 /*
-this functor delivers the "calling experience"
+this functor delivers the "default calling experience"
 to the clients
 */
 template<typename PROC>
@@ -133,7 +116,8 @@ public:
 	}
 };
 
-		using default_cs = call_streamer< default_processor >;
+	// the default metacall definition
+	using default_mc = call_streamer< default_processor >;
 
 	}	// namespace call_stream
 } // namespace dbj

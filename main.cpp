@@ -2,16 +2,18 @@
 //
 
 #include <iostream>
-#include "call_stream_modernes.h"
+#include "metacall_modernes.h"
 
 int main(int argc, char * argv[])
 {
-		namespace cs = dbj::call_stream;
+		namespace mc = dbj::metacall;
+		// mc::default_cs	cst ;
 
-		// cs::default_cs	cst ;
 		// since user::processor inherits the default processor
-		// this just expands on its behaviour
-		cs::call_streamer< user::processor > cst;
+		// and just expands on its behaviour
+		// we can freely slot it in
+		// the default proc. behaviour is preserved
+		mc::call_streamer< user::processor > cst;
 
 		// goes to overloaded processor for handling string literals
 		cst("add", 1, 2)

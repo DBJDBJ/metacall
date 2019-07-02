@@ -24,6 +24,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>callstreamcpp</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>metacall_cpp</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -157,10 +158,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="call_stream_modernes.h" />
+    <ClInclude Include="metacall_modernes.h" />
     <ClInclude Include="console_util\dbj_color.h" />
     <ClInclude Include="console_util\scrutil.h" />
-    <ClInclude Include="dbj_call_stream.h" />
+    <ClInclude Include="dbj_metacall.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="diagrams\readme.md" />
