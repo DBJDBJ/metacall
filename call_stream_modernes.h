@@ -2,6 +2,7 @@
 #include <string>
 #include "dbj_call_stream.h"
 
+// user defined extensions to the default call stream
 // name of this file is cynical omage to the site
 // name https://www.modernescpp.com/
 

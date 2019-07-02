@@ -154,7 +154,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console_util\scrutil.c" />
-    <ClCompile Include="dbj_any_utils\dbj_any_utils.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,7 +161,6 @@
     <ClInclude Include="console_util\dbj_color.h" />
     <ClInclude Include="console_util\scrutil.h" />
     <ClInclude Include="dbj_call_stream.h" />
-    <ClInclude Include="object_store\dbj_object_store.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="diagrams\readme.md" />

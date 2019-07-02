@@ -1,15 +1,20 @@
 #pragma once
 
+/*
+the default call stream
+*/
+
 #include <iostream>
 #include <type_traits>
 #include <stdarg.h>
 #include <tuple>
 
-// comment this out to stop extensive console printing
+// comment this out to stop extensive reporting
 #define DBJ_TRACE_BRIDGE
 
 #ifdef DBJ_TRACE_BRIDGE
-// simple console colouring and using it
+// simple console coloring 
+// not part of call stream
 #include "console_util/dbj_color.h"
 #endif
 
@@ -105,23 +110,6 @@ struct default_processor
 					// see the example bellow for string literals
 					dbj::print::white("\nType: %s, has no processor implemented", typeid(cmd_).name());
 				}
-			}
-
-			/*
-			in default processor we take care of string literals too
-			*/
-			template <typename ... Args>
-			void operator () (const char* sl_cmd_, Args ... args_) const
-			{
-				auto args_tup = std::make_tuple(args_...);
-
-				auto a1 = std::get<0>(args_tup);
-				auto a2 = std::get<1>(args_tup);
-
-#ifdef DBJ_TRACE_BRIDGE
-		dbj::print::green("\n %s received: %d, %d", typeid(*this).name(), a1,a2);
-#endif
-
 			}
 
 		}; // default_processor
