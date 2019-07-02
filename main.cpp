@@ -2,10 +2,15 @@
 //
 
 #include <iostream>
+#include "afx.h"
 #include "call_stream_modernes.h"
+#include "object_store/dbj_object_store.h"
 
-int main()
+int main(int argc, char * argv[])
 {
+	test_dbj_any_util(argc,argv);
+	dbj::odm::storage_test();
+
 		namespace cs = dbj::call_stream;
 
 		// cs::default_cs	cst ;

@@ -30,12 +30,18 @@
     <ClInclude Include="console_util\scrutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="object_store\dbj_object_store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="console_util\scrutil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dbj_any_utils\dbj_any_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
