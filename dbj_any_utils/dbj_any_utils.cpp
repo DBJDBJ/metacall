@@ -67,7 +67,9 @@ inline decltype(auto) any_handler(T const& arg_ )
 void test_dbj_any_util(int argc, char* argv[])
 {
 	auto [h1, a1] = super_any(42);
+	int a42 = *h1();
 	auto [h2, a2] = make_any(42);
-	auto handler_ = any_handler(42);
-	auto j = handler_();
+	int b42 = *h2(a2);
+	auto h3 = any_handler(42);
+	int j = *h3();
 }
