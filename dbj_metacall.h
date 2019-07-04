@@ -8,9 +8,13 @@ the default call stream
 #include <type_traits>
 #include <stdarg.h>
 #include <tuple>
+#include <future>
+
+// comment this out to stop async processing
+#define DBJ_METACALL_ASYNC
 
 // comment this out to stop extensive reporting
-#define DBJ_TRACE_BRIDGE
+// #define DBJ_TRACE_BRIDGE
 
 #ifdef DBJ_TRACE_BRIDGE
 // simple console coloring 
@@ -91,7 +95,9 @@ struct default_processor
 			// anything else, needs to have it's
 			// processor implemented
 			// see the example bellow for string literals
+#ifdef DBJ_TRACE_BRIDGE
 			dbj::print::white("\nType: %s, has no processor implemented", typeid(cmd_).name());
+#endif
 		}
 	}
 
@@ -111,13 +117,47 @@ public:
 	template < typename CMD_, typename... Args>
 	const call_streamer& operator()(CMD_ cmd_, Args... args_) const
 	{
-		proc_(cmd_, args_...);
+#ifdef DBJ_METACALL_ASYNC
+		auto must_not_discard_ = std::async(
+			proc_, cmd_, args_...
+		);
+#else
+		proc_( cmd_, args_...) ;
+#endif
 		return *this;
 	}
 };
 
-	// the default metacall definition
+	// the default SYNC metacall definition
 	using default_mc = call_streamer< default_processor >;
+
+	/*
+	this functor delivers the async calling experience
+	to the clients
+
+	behaviour can be very different thus it will exist in 
+	the same time as the sync version for particular uses
+	when order of calls is not relevant
+	*/
+	template<typename PROC>
+	class call_streamer_async final
+	{
+		PROC proc_;
+
+	public:
+
+		template < typename CMD_, typename... Args>
+		const call_streamer_async& operator()(CMD_ cmd_, Args... args_) const
+		{
+			[[maybe_unused]]auto must_not_discard_ = std::async(
+				proc_, cmd_, args_...
+			);
+			return *this;
+		}
+	};
+
+	// the default ASYNC metacall definition
+	using default_mca = call_streamer_async< default_processor >;
 
 	}	// namespace call_stream
 } // namespace dbj
