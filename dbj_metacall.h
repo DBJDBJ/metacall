@@ -10,11 +10,8 @@ the default call stream
 #include <tuple>
 #include <future>
 
-// comment this out to stop async processing
-#define DBJ_METACALL_ASYNC
-
 // comment this out to stop extensive reporting
-// #define DBJ_TRACE_BRIDGE
+#define DBJ_TRACE_BRIDGE
 
 #ifdef DBJ_TRACE_BRIDGE
 // simple console coloring 
@@ -159,5 +156,5 @@ public:
 	// the default ASYNC metacall definition
 	using default_mca = call_streamer_async< default_processor >;
 
-	}	// namespace call_stream
+	}	// namespace metacall
 } // namespace dbj

@@ -1,19 +1,20 @@
 // call_stream_cpp.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
 #include <iostream>
 #include "metacall_modernes.h"
 
 int main(int argc, char * argv[])
 {
 		namespace mc = dbj::metacall;
-		// mc::default_cs	cst ;
+		mc::default_mca async_meta_call;
+		mc::default_mc	meta_call ;
+		auto cst = async_meta_call;
 
 		// since user::processor inherits the default processor
 		// and just expands on its behaviour
 		// we can freely slot it in
 		// the default proc. behaviour is preserved
-		mc::call_streamer< user::processor > cst;
+		//  mc::call_streamer< user::processor > cst;
 
 		// goes to overloaded processor for handling string literals
 		cst("add", 1, 2)
