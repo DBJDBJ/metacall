@@ -31,7 +31,7 @@ namespace dbj::print
 	)
 	{
 		auto white_on_black = []() { scrSetColors(scrWhite, scrBlack); return true; };
-		static auto once = white_on_black();
+		static auto once [[maybe_unused]] = white_on_black();
 
 		scrSetColorsWithAttr(atts_);
 		return printf(fmt, args_...);

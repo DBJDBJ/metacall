@@ -10,6 +10,16 @@ the default call stream
 #include <tuple>
 #include <future>
 
+#define DBJ_FUNCSIG " " 
+
+#ifdef __PRETTY_FUNCTION__
+#define DBJ_FUNCSIG __PRETTY_FUNCTION__
+#endif // DBJ_FUNCSIG
+
+#ifdef __FUNCSIG__
+#define DBJ_FUNCSIG __FUNCSIG__
+#endif // DBJ_FUNCSIG
+
 // comment this out to stop extensive reporting
 #define DBJ_TRACE_BRIDGE
 
@@ -52,6 +62,14 @@ point where wan can lo the traffic, or redirect the traffic, etc ...
 namespace dbj {
 	namespace metacall
 	{
+		template< class T >
+		struct remove_cvref {
+			typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+		};
+
+		template< class T >
+		using remove_cvref_t = typename remove_cvref<T>::type;
+
 /*
 Default processor
 each call can be a 'command' + variable number of arguments
@@ -63,29 +81,32 @@ struct default_processor
 	user defined processors must be functors implementing
 	this method
 	*/
-	template <typename T, typename... Args>
-	void operator () (T const& cmd_, Args... args_) const
+	template <typename CMD_, typename... Args>
+	void operator () (CMD_ /*const&*/ cmd_, Args... args_) const
 	{
 	// functor inheriting from dbj::command_base
 	// will be treated differently
+	using CMDTYPE = metacall::remove_cvref_t<CMD_>;
 	using namespace std;
-	using ARGTYPE = decay_t<T>;
-	constexpr bool  invocable = is_invocable_v<ARGTYPE, Args...>;
+	constexpr bool  invocable = is_invocable_v<CMDTYPE, Args...>;
+	constexpr bool  invocable_as_function = is_function_v< CMDTYPE >;
 
-#ifdef DBJ_TRACE_BRIDGE
-	dbj::print::white("\n------------------------------------------------------------");
-	dbj::print::red(
-	"\nGeneric Bridge "
-	", argument type: %s"
-	", argument is invocable: %s\n",
-	typeid(ARGTYPE).name(), DBJ_BOOLALPHA(invocable)
-);
-#endif
 		if constexpr (invocable)
 		{
-			// commnad must be a functor with call operator with variable
-			// number of arguments
-			// of some tother invocable object
+#ifdef DBJ_TRACE_BRIDGE
+			dbj::print::white("\n------------------------------------------------------------");
+			dbj::print::blue(
+				"\nGeneric Bridge , invocable command: %s\n", typeid(CMDTYPE).name());
+#endif
+			cmd_(args_...);
+		}
+		else if constexpr (invocable_as_function)
+		{
+#ifdef DBJ_TRACE_BRIDGE
+			dbj::print::white("\n------------------------------------------------------------");
+			dbj::print::blue(
+				"\nGeneric Bridge , function command: %s\n", typeid(CMDTYPE).name());
+#endif
 			cmd_(args_...);
 		}
 		else {
@@ -93,7 +114,7 @@ struct default_processor
 			// processor implemented
 			// see the example bellow for string literals
 #ifdef DBJ_TRACE_BRIDGE
-			dbj::print::white("\nType: %s, has no processor implemented", typeid(cmd_).name());
+			dbj::print::red("\nCommand type: %s\nHas no processor implemented, or is not invocable?\n", typeid(CMDTYPE).name());
 #endif
 		}
 	}

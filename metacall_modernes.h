@@ -95,7 +95,7 @@ public:
 void add(int a1, int a2, int a3) 
 {
 #ifdef DBJ_TRACE_BRIDGE
-	dbj::print::blue("\n " __FUNCSIG__ " received: %d,%d,%d", a1, a2,a3);
+	dbj::print::blue("\n " DBJ_FUNCSIG " received: %d,%d,%d", a1, a2,a3);
 #endif
 }
 
