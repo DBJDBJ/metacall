@@ -12,8 +12,6 @@ namespace user
 
 	/* 
 	user defined processor (UDP)
-	user does not need to inherit from the default processor
-	but it can, usually for cnvenience 
 	This UPD, takes care of 
 	string literals and bools sent as the first arg
 
@@ -22,10 +20,15 @@ namespace user
 	ucs(true,1,2,3)("oopsy!",4,5,6) ;
 
 	*/
-	struct processor : mc::default_processor {
+	struct bool_processor  final : mc::default_processor
+	{
 
 		/*
-		specificaly use the operators from the base
+		user does not need to inherit from the default processor
+		but it can, usually for convenience
+		specificaly becuase we have inherited from the default processor
+		we use it's operators to disptach calls which are not for bool
+		as first argument
 		*/
 		using mc::default_processor::operator();
 		/*
@@ -36,12 +39,17 @@ namespace user
 		{
 			auto args_tup = std::make_tuple(args_...);
 			auto arg_count_ = std::tuple_size_v< decltype(args_tup) >;
+
+			int a1 = std::get<0>(args_tup);
+
 #ifdef DBJ_TRACE_BRIDGE
-	dbj::print::green("\n " __FUNCSIG__ " received: %d and %d arguments", bool_arg_, arg_count_);
+	dbj::print::green("\n " DBJ_FUNCSIG " received: %s and %d as argument", DBJ_BOOLALPHA( bool_arg_) , a1 );
 #endif
 		}
 
 	};
+
+	using bool_streamer = typename dbj::metacall::call_streamer<bool_processor>;
 /*
 user defined comand
 also a generic comand example

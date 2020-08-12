@@ -10,15 +10,18 @@ the default call stream
 #include <tuple>
 #include <future>
 
+#undef DBJ_FUNCSIG
 #define DBJ_FUNCSIG " " 
 
 #ifdef __PRETTY_FUNCTION__
+#undef DBJ_FUNCSIG
 #define DBJ_FUNCSIG __PRETTY_FUNCTION__
-#endif // DBJ_FUNCSIG
+#endif // __PRETTY_FUNCTION__
 
 #ifdef __FUNCSIG__
+#undef DBJ_FUNCSIG
 #define DBJ_FUNCSIG __FUNCSIG__
-#endif // DBJ_FUNCSIG
+#endif // __FUNCSIG__
 
 // comment this out to stop extensive reporting
 #define DBJ_TRACE_BRIDGE
@@ -78,15 +81,16 @@ or not
 struct default_processor  
 {
 	/*
-	user defined processors must be functors implementing
-	this method
+	user defined processors must be callable
+	and implementing method with this signature
+	but presumably on some user defined command 
 	*/
 	template <typename CMD_, typename... Args>
-	void operator () (CMD_ /*const&*/ cmd_, Args... args_) const
+	void operator () (CMD_ cmd_, Args && ... args_) const
 	{
 	// functor inheriting from dbj::command_base
 	// will be treated differently
-	using CMDTYPE = metacall::remove_cvref_t<CMD_>;
+		using CMDTYPE = metacall::remove_cvref_t<CMD_>;
 	using namespace std;
 	constexpr bool  invocable = is_invocable_v<CMDTYPE, Args...>;
 	constexpr bool  invocable_as_function = is_function_v< CMDTYPE >;
