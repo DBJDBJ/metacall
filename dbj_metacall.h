@@ -73,27 +73,45 @@ namespace dbj {
 		template< class T >
 		using remove_cvref_t = typename remove_cvref<T>::type;
 
+		// https://stackoverflow.com/questions/59654482/how-is-stdis-function-implemented
+
+		template<class T>
+		struct is_function : std::integral_constant<
+			bool,
+			!std::is_const<const T>::value && !std::is_reference<T>::value
+		> {};
+
+		template <class Ty_>
+		inline constexpr bool is_function_v = is_function<Ty_>::value;
+
 /*
 Default processor
 each call can be a 'command' + variable number of arguments
 or not 
+
+
+2020 AUG 12	DBJ	Design has changed to hopefully more resilient.
+				Instead of using "call operators" on instances of processors
+				we mandate one or more overloads of a static function called 'call'
+				see bellow for details
 */
 struct default_processor  
 {
+	using type = default_processor;
 	/*
 	user defined processors must be callable
 	and implementing method with this signature
 	but presumably on some user defined command 
 	*/
 	template <typename CMD_, typename... Args>
-	void operator () (CMD_ cmd_, Args && ... args_) const
+	static void call (CMD_ && cmd_, Args && ... args_)
 	{
 	// functor inheriting from dbj::command_base
 	// will be treated differently
-		using CMDTYPE = metacall::remove_cvref_t<CMD_>;
+		using CMDTYPE = CMD_; //  metacall::remove_cvref_t<CMD_>;
 	using namespace std;
-	constexpr bool  invocable = is_invocable_v<CMDTYPE, Args...>;
-	constexpr bool  invocable_as_function = is_function_v< CMDTYPE >;
+	constexpr bool  invocable = is_invocable_v<CMD_, Args...>;
+	constexpr bool  invocable_as_function = metacall::is_function_v< CMD_ >;
 
 		if constexpr (invocable)
 		{
@@ -118,7 +136,7 @@ struct default_processor
 			// processor implemented
 			// see the example bellow for string literals
 #ifdef DBJ_TRACE_BRIDGE
-			dbj::print::red("\nCommand type: %s\nHas no processor implemented, or is not invocable?\n", typeid(CMDTYPE).name());
+			dbj::print::red("\nCommand type: %s\nHas no processor implemented, or is not invocable, or you have not given proper arguments?\n", typeid(CMDTYPE).name());
 #endif
 		}
 	}
@@ -130,25 +148,36 @@ this functor delivers the "default calling experience"
 to the clients
 */
 template<typename PROC>
-class call_streamer final
+struct call_streamer final
 {
-	PROC proc_;
+	using type = call_streamer;
 
-public:
+	call_streamer() = default;
+	// no copy
+	call_streamer(call_streamer const &) = delete;
+	call_streamer & operator = (call_streamer const &) = delete;
+	// move
+	call_streamer(call_streamer &&) = default ;
+	call_streamer & operator = (call_streamer &&) = default;
 
 	template < typename CMD_, typename... Args>
-	const call_streamer& operator()(CMD_ cmd_, Args... args_) const
+	const type & operator()(CMD_ cmd_, Args && ... args_) const
 	{
-#ifdef DBJ_METACALL_ASYNC
-		auto must_not_discard_ = std::async(
-			proc_, cmd_, args_...
-		);
-#else
-		proc_( cmd_, args_...) ;
-#endif
+		PROC::call( cmd_, args_...) ;
 		return *this;
 	}
-};
+
+	// lets just repeat the non-const operator
+	template < typename CMD_, typename... Args>
+	type & operator()(CMD_ cmd_, Args && ... args_)
+	{
+		static PROC proc_;
+
+		PROC::call( cmd_, args_...) ;
+		return *this;
+	}
+
+}; // call_streamer
 
 	// the default SYNC metacall definition
 	using default_mc = call_streamer< default_processor >;
@@ -162,24 +191,39 @@ public:
 	when order of calls is not relevant
 	*/
 	template<typename PROC>
-	class call_streamer_async final
+	struct call_streamer_async final
 	{
-		PROC proc_;
-
-	public:
+		using type = call_streamer_async;
 
 		template < typename CMD_, typename... Args>
-		const call_streamer_async& operator()(CMD_ cmd_, Args... args_) const
+		const call_streamer_async& operator()(CMD_ && cmd_, Args && ... args_) const
 		{
-			[[maybe_unused]]auto must_not_discard_ = std::async(
-				proc_, cmd_, args_...
+			auto caller = [&]( auto cm_ , auto ... params_  ) {
+				PROC::call(cm_, params_ ...);
+			};
+
+			auto must_not_discard_ [[maybe_unused]] = std::async(
+				caller, cmd_, args_...
 			);
+
 			return *this;
-		}
+		}	
+		//
+		//// just repeat the non-const overlord
+		//template < typename CMD_, typename... Args>
+		//call_streamer_async& operator()(CMD_ cmd_, Args && ... args_) 
+		//{
+		//	static PROC proc_;
+
+		//	auto must_not_discard_ [[maybe_unused]] = std::async(
+		//		proc_, cmd_, args_...
+		//	);
+		//	return *this;
+		//}
 	};
 
 	// the default ASYNC metacall definition
-	using default_mca = call_streamer_async< default_processor >;
+	using default_async_mca = call_streamer_async< default_processor >;
 
 	}	// namespace metacall
 } // namespace dbj

@@ -20,7 +20,7 @@ namespace user
 	ucs(true,1,2,3)("oopsy!",4,5,6) ;
 
 	*/
-	struct bool_processor  final : mc::default_processor
+	struct bool_processor  final /* : mc::default_processor*/
 	{
 
 		/*
@@ -30,12 +30,27 @@ namespace user
 		we use it's operators to disptach calls which are not for bool
 		as first argument
 		*/
-		using mc::default_processor::operator();
+		template <typename CMD_, typename... Args>
+		static void call(CMD_ && cmd_, Args && ... args_)
+		{
+			mc::default_processor::call( cmd_, args_ ... );
+		}
+
 		/*
-		in user define processor we take care of bool literals too
+		 another overload for those who like the reference_wrapper
+		*/
+		template <typename CMD_, typename... Args>
+		static void call(std::reference_wrapper< CMD_> cmd_, Args && ... args_)
+		{
+			mc::default_processor::call(cmd_.get(), args_ ...);
+		}
+
+		/*
+		in this user define processor we take special care of bool literals
+		IF they happen to be the first argument that is
 		*/
 		template <typename ... Args>
-		void operator () (bool bool_arg_, Args ... args_) const 
+		static void call (bool bool_arg_, Args ... args_) 
 		{
 			auto args_tup = std::make_tuple(args_...);
 			auto arg_count_ = std::tuple_size_v< decltype(args_tup) >;
